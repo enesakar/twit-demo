@@ -40,7 +40,7 @@ public class ServerMain extends JFrame {
 
         SwingUtilities.updateComponentTreeUI(this);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setSize(new Dimension(500, 585));
+        setSize(new Dimension(400, 285));
         setResizable(false);
         setTitle("Hazelcast Twitter Demo Server");
 
@@ -51,18 +51,18 @@ public class ServerMain extends JFrame {
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEtchedBorder());
-        scrollPane.setBounds(22, 10, 464, 550);
+        scrollPane.setBounds(22, 10, 364, 250);
         table.setFillsViewportHeight(true);
         table.setPreferredScrollableViewportSize(table.getPreferredSize());
-        table.setRowHeight(50);
+//        table.setRowHeight(50);
         main.add(scrollPane);
 
-        tableModel.addColumn("");
-        tableModel.addColumn("");
-        tableModel.addColumn("");
-        table.getColumnModel().getColumn(0).setPreferredWidth(10);
+        tableModel.addColumn("id");
+        tableModel.addColumn("twitter_id");
+        tableModel.addColumn("tweet");
+        table.getColumnModel().getColumn(0).setPreferredWidth(20);
         table.getColumnModel().getColumn(1).setPreferredWidth(50);
-        table.getColumnModel().getColumn(2).setPreferredWidth(400);
+        table.getColumnModel().getColumn(2).setPreferredWidth(250);
 
         setLocationRelativeTo(null);
     }
@@ -84,7 +84,8 @@ public class ServerMain extends JFrame {
     private class DemoTableModel extends DefaultTableModel {
 
         public Class<?> getColumnClass(int column) {
-            return column == 1 ? Icon.class : String.class;
+//            return column == 1 ? Icon.class : String.class;
+            return String.class;
         }
 
         public Object getValueAt(int row, int column) {
@@ -128,12 +129,13 @@ public class ServerMain extends JFrame {
     }
 
     private void addTwitInternal(final Twit twit) {
-        if (!icons.containsKey(twit.username)) {
-            Icon icon = ImageLoader.load(twit.username);
-            icons.put(twit.username, icon);
-        }
+//        if (!icons.containsKey(twit.username)) {
+//            Icon icon = ImageLoader.load(twit.username);
+//            icons.put(twit.username, icon);
+//        }
         Vector v = new Vector();
-        v.add(icons.get(twit.username));
+//        v.add(icons.get(twit.username));
+        v.add(twit.username);
         v.add(twit.text) ;
         tableModel.getDataVector().add(v);
     }
