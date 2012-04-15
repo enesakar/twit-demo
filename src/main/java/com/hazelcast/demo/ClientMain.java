@@ -43,7 +43,7 @@ public class ClientMain extends JFrame {
 
         SwingUtilities.updateComponentTreeUI(this);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setSize(new Dimension(600, 585));
+        setSize(new Dimension(550, 585));
         setResizable(false);
         setTitle("Hazelcast Twitter Demo Client");
 
@@ -53,7 +53,7 @@ public class ClientMain extends JFrame {
         text = new JTextArea();
         text.setLineWrap(true);
         text.setBorder(BorderFactory.createEtchedBorder());
-        text.setBounds(22, 466, 481, 73);
+        text.setBounds(22, 466, 431, 73);
         text.addKeyListener(new KeyAdapter() {
             public void keyPressed(final KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
@@ -65,7 +65,7 @@ public class ClientMain extends JFrame {
         main.add(text);
 
         JButton send = new JButton("Tweet");
-        send.setBounds(515, 510, 71, 29);
+        send.setBounds(465, 510, 71, 29);
         send.addActionListener(new SendActionListener());
         main.add(send);
 
@@ -73,7 +73,7 @@ public class ClientMain extends JFrame {
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEtchedBorder());
-        scrollPane.setBounds(22, 60, 564, 390);
+        scrollPane.setBounds(22, 60, 514, 390);
         table.setFillsViewportHeight(true);
         table.setPreferredScrollableViewportSize(table.getPreferredSize());
         table.setRowHeight(65);
@@ -84,7 +84,7 @@ public class ClientMain extends JFrame {
         tableModel.addColumn("");
         table.getColumnModel().getColumn(0).setPreferredWidth(50);
         table.getColumnModel().getColumn(1).setPreferredWidth(10);
-        table.getColumnModel().getColumn(2).setPreferredWidth(500);
+        table.getColumnModel().getColumn(2).setPreferredWidth(450);
 
         table.setDefaultRenderer(String.class, new TextRenderer());
 
