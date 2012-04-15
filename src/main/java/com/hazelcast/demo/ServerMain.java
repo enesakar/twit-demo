@@ -40,21 +40,26 @@ public class ServerMain extends JFrame {
 
         SwingUtilities.updateComponentTreeUI(this);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setSize(new Dimension(400, 285));
+        setSize(new Dimension(400, 400));
         setResizable(false);
         setTitle("Hazelcast Twitter Demo Server");
 
         getContentPane().add(main);
         main.setLayout(null);
 
+        JLabel hazelcastLogo = new JLabel(ImageLoader.load("hazelcast"));
+        hazelcastLogo.setBounds(22, 10, 143, 59);
+
         table = new DemoTable(tableModel);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEtchedBorder());
-        scrollPane.setBounds(22, 10, 364, 250);
+        scrollPane.setBounds(22, 69, 364, 250);
         table.setFillsViewportHeight(true);
         table.setPreferredScrollableViewportSize(table.getPreferredSize());
 //        table.setRowHeight(50);
+
+        main.add(hazelcastLogo);
         main.add(scrollPane);
 
         tableModel.addColumn("id");
