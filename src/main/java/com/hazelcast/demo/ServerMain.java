@@ -68,10 +68,6 @@ public class ServerMain extends JFrame {
     }
 
     private class DemoTable extends JTable {
-//        private Border outside = new MatteBorder(1, 0, 1, 0, Color.RED);
-//        private Border inside = new EmptyBorder(0, 1, 0, 1);
-//        private Border highlight = new CompoundBorder(outside, inside);
-
         public DemoTable(final TableModel dm) {
             super(dm);
         }
@@ -81,7 +77,6 @@ public class ServerMain extends JFrame {
             if (!isRowSelected(row)) {
                 c.setBackground(row % 2 == 0 ? getBackground() : Color.LIGHT_GRAY);
             }
-//            ((JComponent) c).setBorder(highlight);
             return c;
         }
     }

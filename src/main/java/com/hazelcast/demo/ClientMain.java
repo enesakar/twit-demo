@@ -27,13 +27,11 @@ public class ClientMain extends JFrame {
     private JTable table;
     private DefaultTableModel tableModel = new DemoTableModel();
     private Map<String, Icon> icons = new HashMap<String, Icon>();
-    private final Loading loading;
     private volatile String username;
     private volatile HazelcastClient client;
 
     public ClientMain() {
         init();
-        loading = new Loading(this, "Logging in to Twitter...");
     }
 
     private void init() {
@@ -45,7 +43,7 @@ public class ClientMain extends JFrame {
 
         SwingUtilities.updateComponentTreeUI(this);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setSize(new Dimension(500, 585));
+        setSize(new Dimension(600, 585));
         setResizable(false);
         setTitle("Hazelcast Twitter Demo Client");
 
@@ -55,7 +53,7 @@ public class ClientMain extends JFrame {
         text = new JTextArea();
         text.setLineWrap(true);
         text.setBorder(BorderFactory.createEtchedBorder());
-        text.setBounds(22, 466, 381, 73);
+        text.setBounds(22, 466, 481, 73);
         text.addKeyListener(new KeyAdapter() {
             public void keyPressed(final KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
@@ -67,7 +65,7 @@ public class ClientMain extends JFrame {
         main.add(text);
 
         JButton send = new JButton("Tweet");
-        send.setBounds(415, 510, 71, 29);
+        send.setBounds(515, 510, 71, 29);
         send.addActionListener(new SendActionListener());
         main.add(send);
 
@@ -75,16 +73,18 @@ public class ClientMain extends JFrame {
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEtchedBorder());
-        scrollPane.setBounds(22, 60, 464, 390);
+        scrollPane.setBounds(22, 60, 564, 390);
         table.setFillsViewportHeight(true);
         table.setPreferredScrollableViewportSize(table.getPreferredSize());
-        table.setRowHeight(75);
+        table.setRowHeight(65);
         main.add(scrollPane);
 
         tableModel.addColumn("");
         tableModel.addColumn("");
+        tableModel.addColumn("");
         table.getColumnModel().getColumn(0).setPreferredWidth(50);
-        table.getColumnModel().getColumn(1).setPreferredWidth(410);
+        table.getColumnModel().getColumn(1).setPreferredWidth(10);
+        table.getColumnModel().getColumn(2).setPreferredWidth(500);
 
         table.setDefaultRenderer(String.class, new TextRenderer());
 
@@ -124,7 +124,7 @@ public class ClientMain extends JFrame {
             Icon icon = ImageLoader.load(twit.username);
             icons.put(twit.username, icon);
         }
-        tableModel.insertRow(0, new Object[]{icons.get(twit.username), twit.text});
+        tableModel.insertRow(0, new Object[]{icons.get(twit.username), "", twit.text});
     }
 
     private class SendActionListener implements ActionListener {
@@ -137,8 +137,8 @@ public class ClientMain extends JFrame {
     void sendTwit() {
         final String message = text.getText();
         text.setText("");
-        //tableModel.insertRow(0, new Object[]{icons.get(username), twit});
-        client.getMap("twits").put(System.currentTimeMillis(), new Twit(username, message));
+        client.getMap("twits").put(System.currentTimeMillis(),
+                                   new Twit(username, '@'+ username + '\n' + message));
     }
 
     private class DemoTable extends JTable {

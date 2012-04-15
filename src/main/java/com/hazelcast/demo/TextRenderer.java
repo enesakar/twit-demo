@@ -9,14 +9,17 @@ import java.awt.*;
  */
 public class TextRenderer extends JTextArea implements TableCellRenderer {
 
+    private final static Font font = new Font("Helvetica", Font.PLAIN, 12);
+
     @Override
     public Component getTableCellRendererComponent(final JTable table, final Object value,
                                                    final boolean isSelected, final boolean hasFocus,
                                                    final int row, final int column) {
 
-        this.setText((String)value);
+        this.setFont(font);
         this.setWrapStyleWord(true);
         this.setLineWrap(true);
+        this.setText((String) value);
         return this;
     }
 }
