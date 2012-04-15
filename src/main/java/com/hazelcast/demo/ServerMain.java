@@ -2,12 +2,9 @@ package com.hazelcast.demo;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.config.EntryListenerConfig;
-import com.hazelcast.config.ListenerConfig;
 import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.*;
 import com.hazelcast.impl.GroupProperties;
-import com.hazelcast.partition.MigrationEvent;
-import com.hazelcast.partition.MigrationListener;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -15,6 +12,9 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import java.awt.*;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @mdogan 4/15/12
@@ -26,6 +26,7 @@ public class ServerMain extends JFrame {
     private DefaultTableModel tableModel = new DemoTableModel();
     private Map<String, Icon> icons = new HashMap<String, Icon>();
     private volatile IMap<Long, Twit> twits;
+    private final ScheduledExecutorService ex = Executors.newSingleThreadScheduledExecutor();
 
     public ServerMain() {
         init();
@@ -102,20 +103,23 @@ public class ServerMain extends JFrame {
 
     void setHazelcastInstance(HazelcastInstance hz) {
         twits = hz.getMap("twits");
+        ex.scheduleAtFixedRate(new Runnable() {
+            public void run() {
+                loadLocalTwits();
+            }
+        }, 1, 1, TimeUnit.SECONDS);
     }
 
-    void loadLocalTwitsIfRequired(MigrationEvent event) {
-        if (event.getNewOwner().localMember() || event.getOldOwner().localMember()) {
-            loadLocalTwits();
-        }
-    }
+//    void loadLocalTwitsIfRequired(MigrationEvent event) {
+//        if (event.getNewOwner().localMember() || event.getOldOwner().localMember()) {
+//            loadLocalTwits();
+//        }
+//    }
 
     synchronized void loadLocalTwits() {
         if (twits == null) return;
         final java.util.List<Long> keys = new LinkedList<Long>(twits.localKeySet());
         Collections.sort(keys);
-        System.err.println("Loading local twits..." + keys);
-
         tableModel.getDataVector().clear();
         for (Long key : keys) {
             addTwitInternal(twits.get(key));
@@ -129,12 +133,7 @@ public class ServerMain extends JFrame {
     }
 
     private void addTwitInternal(final Twit twit) {
-//        if (!icons.containsKey(twit.username)) {
-//            Icon icon = ImageLoader.load(twit.username);
-//            icons.put(twit.username, icon);
-//        }
         Vector v = new Vector();
-//        v.add(icons.get(twit.username));
         v.add(twit.username);
         v.add(twit.text) ;
         tableModel.getDataVector().add(v);
@@ -153,27 +152,27 @@ public class ServerMain extends JFrame {
             }
         }, true, true));
 
-        config.addListenerConfig(new ListenerConfig(new MembershipListener() {
-            public void memberAdded(final MembershipEvent e) {
-            }
-
-            public void memberRemoved(final MembershipEvent e) {
-                try {
-                    Thread.sleep(1500);
-                } catch (InterruptedException ex) {
-                }
-                main.loadLocalTwits();
-            }
-        }));
-
-        config.addListenerConfig(new ListenerConfig(new MigrationListener() {
-            public void migrationStarted(final MigrationEvent e) {
-            }
-
-            public void migrationCompleted(final MigrationEvent e) {
-                main.loadLocalTwitsIfRequired(e);
-            }
-        }));
+//        config.addListenerConfig(new ListenerConfig(new MembershipListener() {
+//            public void memberAdded(final MembershipEvent e) {
+//            }
+//
+//            public void memberRemoved(final MembershipEvent e) {
+//                try {
+//                    Thread.sleep(1500);
+//                } catch (InterruptedException ex) {
+//                }
+//                main.loadLocalTwits();
+//            }
+//        }));
+//
+//        config.addListenerConfig(new ListenerConfig(new MigrationListener() {
+//            public void migrationStarted(final MigrationEvent e) {
+//            }
+//
+//            public void migrationCompleted(final MigrationEvent e) {
+//                main.loadLocalTwitsIfRequired(e);
+//            }
+//        }));
 
         final HazelcastInstance hz = Hazelcast.init(config);
         main.setHazelcastInstance(hz);
