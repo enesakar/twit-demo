@@ -51,6 +51,9 @@ public class ServerMain extends JFrame {
         JLabel hazelcastLogo = new JLabel(ImageLoader.load("hazelcast"));
         hazelcastLogo.setBounds(22, 10, 143, 59);
 
+        JLabel twitterLogo = new JLabel(ImageLoader.load("twitter"));
+        twitterLogo.setBounds(200, 20, 180, 33);
+
         table = new DemoTable(tableModel);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollPane = new JScrollPane(table);
@@ -61,6 +64,7 @@ public class ServerMain extends JFrame {
 //        table.setRowHeight(50);
 
         main.add(hazelcastLogo);
+        main.add(twitterLogo);
         main.add(scrollPane);
 
         tableModel.addColumn("id");

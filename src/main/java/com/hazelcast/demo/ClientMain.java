@@ -137,7 +137,8 @@ public class ClientMain extends JFrame {
     void sendTwit() {
         final String message = text.getText();
         text.setText("");
-        client.getMap("twits").put(System.currentTimeMillis(),
+        long id = client.getAtomicNumber("twit").getAndAdd(1);
+        client.getMap("twits").put(id,
                                    new Twit(username, '@'+ username + '\n' + message));
     }
 
