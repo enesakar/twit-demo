@@ -4,7 +4,6 @@ import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.core.EntryAdapter;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.IMap;
-import com.hazelcast.demo.TwitIconLoader.Callback;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -15,7 +14,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -68,7 +66,7 @@ public class ClientMain extends JFrame {
         });
         main.add(text);
 
-        JButton send = new JButton("Send");
+        JButton send = new JButton("Tweet");
         send.setBounds(415, 510, 71, 29);
         send.addActionListener(new SendActionListener());
         main.add(send);
@@ -93,27 +91,14 @@ public class ClientMain extends JFrame {
 
     void setUser(final String name) {
         try {
-            final URL url = new URL("https://api.twitter.com/1/users/profile_image?screen_name="
-                                    + name + "&size=normal");
-            SwingWorker sw = new SwingWorker<ImageIcon, Void>() {
-                protected ImageIcon doInBackground() throws Exception {
-                    client = HazelcastClient.newHazelcastClient(null);
-                    IMap<Long, Twit> twits = client.getMap("twits");
-                    twits.addEntryListener(new EntryAdapter<Long, Twit>() {
-                        public void entryAdded(final EntryEvent<Long, Twit> e) {
-                            addTwit(e.getValue());
-                        }
-                    }, true);
-                    return new ImageIcon(url);
+            client = HazelcastClient.newHazelcastClient(null);
+            IMap<Long, Twit> twits = client.getMap("twits");
+            twits.addEntryListener(new EntryAdapter<Long, Twit>() {
+                public void entryAdded(final EntryEvent<Long, Twit> e) {
+                    addTwit(e.getValue());
                 }
-
-                protected void done() {
-                    loading.hidePanel();
-                }
-            };
-            sw.execute();
-            loading.showPanel();
-            Icon icon = (ImageIcon) sw.get();
+            }, true);
+            Icon icon = ImageLoader.load(name);
             JLabel picture = new JLabel(icon);
             picture.setSize(48, 48);
             picture.setLocation(22, 5);
@@ -133,28 +118,11 @@ public class ClientMain extends JFrame {
     }
 
     void addTwit(final Twit twit) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                if (icons.containsKey(twit.username)) {
-                    tableModel.insertRow(0, new Object[]{icons.get(twit.username), twit.text});
-                } else {
-                    try {
-                        TwitIconLoader.loadIcon(twit.username, new Callback() {
-                            public void call(final Icon icon) {
-                                icons.put(twit.username, icon);
-                                tableModel.insertRow(0, new Object[]{icons.get(twit.username), twit.text});
-                            }
-
-                            public void onError(final Exception e) {
-                                e.printStackTrace();
-                            }
-                        });
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
+        if (!icons.containsKey(twit.username)) {
+            Icon icon = ImageLoader.load(twit.username);
+            icons.put(twit.username, icon);
+        }
+        tableModel.insertRow(0, new Object[]{icons.get(twit.username), twit.text});
     }
 
     private class SendActionListener implements ActionListener {
@@ -168,10 +136,12 @@ public class ClientMain extends JFrame {
         final String message = text.getText();
         text.setText("");
         //tableModel.insertRow(0, new Object[]{icons.get(username), twit});
-        client.getMap("twits").put(System.currentTimeMillis(), new Twit(username, message)) ;
+        client.getMap("twits").put(System.currentTimeMillis(), new Twit(username, message));
     }
 
     private class DemoTable extends JTable {
+
+
 
         public DemoTable(final TableModel dm) {
             super(dm);
@@ -179,9 +149,10 @@ public class ClientMain extends JFrame {
 
         public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
             final Component c = super.prepareRenderer(renderer, row, column);
-            if (!isRowSelected(row)) {
-                c.setBackground(row % 2 == 0 ? getBackground() : Color.LIGHT_GRAY);
-            }
+//            if (!isRowSelected(row)) {
+//                c.setBackground(row % 2 == 0 ? getBackground() : Color.LIGHT_GRAY);
+//            }
+            ((JComponent) c).setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
             return c;
         }
     }

@@ -5,7 +5,6 @@ import com.hazelcast.config.EntryListenerConfig;
 import com.hazelcast.config.ListenerConfig;
 import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.*;
-import com.hazelcast.demo.TwitIconLoader.Callback;
 import com.hazelcast.impl.GroupProperties;
 import com.hazelcast.partition.MigrationEvent;
 import com.hazelcast.partition.MigrationListener;
@@ -15,10 +14,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import java.awt.*;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @mdogan 4/15/12
@@ -63,13 +59,18 @@ public class ServerMain extends JFrame {
 
         tableModel.addColumn("");
         tableModel.addColumn("");
-        table.getColumnModel().getColumn(0).setPreferredWidth(50);
-        table.getColumnModel().getColumn(1).setPreferredWidth(410);
+        tableModel.addColumn("");
+        table.getColumnModel().getColumn(0).setPreferredWidth(10);
+        table.getColumnModel().getColumn(1).setPreferredWidth(50);
+        table.getColumnModel().getColumn(2).setPreferredWidth(400);
 
         setLocationRelativeTo(null);
     }
 
     private class DemoTable extends JTable {
+//        private Border outside = new MatteBorder(1, 0, 1, 0, Color.RED);
+//        private Border inside = new EmptyBorder(0, 1, 0, 1);
+//        private Border highlight = new CompoundBorder(outside, inside);
 
         public DemoTable(final TableModel dm) {
             super(dm);
@@ -80,6 +81,7 @@ public class ServerMain extends JFrame {
             if (!isRowSelected(row)) {
                 c.setBackground(row % 2 == 0 ? getBackground() : Color.LIGHT_GRAY);
             }
+//            ((JComponent) c).setBorder(highlight);
             return c;
         }
     }
@@ -87,7 +89,14 @@ public class ServerMain extends JFrame {
     private class DemoTableModel extends DefaultTableModel {
 
         public Class<?> getColumnClass(int column) {
-            return column == 0 ? Icon.class : String.class;
+            return column == 1 ? Icon.class : String.class;
+        }
+
+        public Object getValueAt(int row, int column) {
+            if(column == 0) {
+                return String.valueOf(row);
+            }
+            return super.getValueAt(row, column - 1);
         }
 
         public boolean isCellEditable(final int row, final int column) {
@@ -110,52 +119,28 @@ public class ServerMain extends JFrame {
         final java.util.List<Long> keys = new LinkedList<Long>(twits.localKeySet());
         Collections.sort(keys);
         System.err.println("Loading local twits..." + keys);
-        try {
-            SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    tableModel.setRowCount(0);
-                    tableModel.fireTableDataChanged();
-                    for (Long key : keys) {
-                        addTwitInternal(twits.get(key));
-                    }
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
+
+        tableModel.getDataVector().clear();
+        for (Long key : keys) {
+            addTwitInternal(twits.get(key));
         }
+        tableModel.fireTableDataChanged();
     }
 
     void addTwit(final Twit twit) {
-        try {
-            SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    addTwitInternal(twit);
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        addTwitInternal(twit);
+        tableModel.fireTableDataChanged();
     }
 
     private void addTwitInternal(final Twit twit) {
-        if (icons.containsKey(twit.username)) {
-            tableModel.insertRow(0, new Object[]{icons.get(twit.username), twit.text});
-        } else {
-            try {
-                TwitIconLoader.loadIcon(twit.username, new Callback() {
-                    public void call(final Icon icon) {
-                        icons.put(twit.username, icon);
-                        tableModel.insertRow(0, new Object[]{icons.get(twit.username), twit.text});
-                    }
-
-                    public void onError(final Exception e) {
-                        e.printStackTrace();
-                    }
-                });
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        if (!icons.containsKey(twit.username)) {
+            Icon icon = ImageLoader.load(twit.username);
+            icons.put(twit.username, icon);
         }
+        Vector v = new Vector();
+        v.add(icons.get(twit.username));
+        v.add(twit.text) ;
+        tableModel.getDataVector().add(v);
     }
 
     public static void main(String[] args) {
@@ -163,6 +148,7 @@ public class ServerMain extends JFrame {
         main.setVisible(true);
         Config config = new XmlConfigBuilder().build();
         config.setProperty(GroupProperties.PROP_PARTITION_MIGRATION_INTERVAL, "0");
+        config.setProperty(GroupProperties.PROP_CONCURRENT_MAP_PARTITION_COUNT, "6");
         config.getMapConfig("twits").addEntryListenerConfig(new EntryListenerConfig(new EntryAdapter<Long, Twit>() {
             public void entryAdded(final EntryEvent<Long, Twit> e) {
                 Twit twit = e.getValue();
@@ -175,6 +161,10 @@ public class ServerMain extends JFrame {
             }
 
             public void memberRemoved(final MembershipEvent e) {
+                try {
+                    Thread.sleep(1500);
+                } catch (InterruptedException ex) {
+                }
                 main.loadLocalTwits();
             }
         }));
