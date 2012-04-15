@@ -78,13 +78,15 @@ public class ClientMain extends JFrame {
         scrollPane.setBounds(22, 60, 464, 390);
         table.setFillsViewportHeight(true);
         table.setPreferredScrollableViewportSize(table.getPreferredSize());
-        table.setRowHeight(50);
+        table.setRowHeight(75);
         main.add(scrollPane);
 
         tableModel.addColumn("");
         tableModel.addColumn("");
         table.getColumnModel().getColumn(0).setPreferredWidth(50);
         table.getColumnModel().getColumn(1).setPreferredWidth(410);
+
+        table.setDefaultRenderer(String.class, new TextRenderer());
 
         setLocationRelativeTo(null);
     }
